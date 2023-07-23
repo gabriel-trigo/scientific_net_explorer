@@ -1,4 +1,4 @@
-# erdos_path
+# scientific_net_explorer
 A website that finds and visualize shortest coauthorship paths between authors of academic papers. This was heavily inspired by the website [Six Degrees of Wikipedia](https://www.sixdegreesofwikipedia.com/), which finds shortest paths between Wikipedia pages.
 
 ![](https://github.com/gabriel-trigo/erdos_path/blob/master/gifs/demo.gif)
@@ -8,4 +8,4 @@ When names are inputed into the search boxes, the website (implemented with [Rea
   1. Have found at least one common node (and thus a path) and have exhausted all the other possible paths of same length.
   2. The search trees have reached the maximum number of API calls allowed by the API. 
 
-Once the shortest paths are found, the server responds the ```POST``` with the graph information, which is then displayed by the website with [D3.js](https://d3js.org/)
+Once the shortest paths are found, the server responds the request with the graph information, which is then displayed by the website with [D3.js](https://d3js.org/)
