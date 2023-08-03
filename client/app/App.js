@@ -29,8 +29,6 @@ function App() {
         tgt: tgtName
       }
     ).then(response => {
-      console.log(response.data)
-      return
       console.log(response.data["nodes"])
       console.log(response.data["edges"])
       console.log(response.data["paths"])
@@ -58,16 +56,10 @@ function App() {
 
   return (
     <>
-      <h1 style={titleStyle}>
-        {"Erdos Distance"}
-      </h1>
-      <p style={descripStyle}>
-        {"Input the name of two authors, and find the shortest coauthorship paths between them."}
-      </p>
       <div style={divStyle}>
         <input type="text" ref={srcRef} name="Source"/>
         <input type="text" ref={tgtRef} name="Target"/>
-        <button onClick={fetchPaths}>Submit</button>
+        <button className="bg-purple-500 hover:bg-purple-400 border-b-4 border-purple-800 px-3 py-1 text-white font-semibold rounded" onClick={fetchPaths}>Submit</button>
       </div>
       <div style={divStyle}>
         <Graph graph={graph}/>

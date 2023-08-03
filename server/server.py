@@ -14,11 +14,10 @@ def query():
     print("HEYYYYYY")
     src = request.json["src"]
     tgt = request.json["tgt"]
-    return {"hey": 'duh'}
-    print(
-        pipeline(src, tgt)
-    )
-    return pipeline(src, tgt)
+    try:
+        return pipeline(src, tgt)
+    except:
+        return {"hey", "duh"}
 
 @app.after_request
 def after_request(response):

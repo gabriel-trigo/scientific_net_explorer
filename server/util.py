@@ -1,7 +1,6 @@
 import networkx as nx
 import json
 from semanticscholar import SemanticScholar
-import time
 
 
 def get_author_id_by_name(author_name: str):
