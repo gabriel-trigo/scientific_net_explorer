@@ -1,5 +1,5 @@
-scipy
+django
+pydantic
 semanticscholar
-networkx
-matplotlib
-flask
+python-dotenv
+typing
