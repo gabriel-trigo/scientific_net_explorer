@@ -1,4 +1,7 @@
+from typing import Set
 from pydantic import BaseModel
 
-class MyType(BaseModel):
-    key: str
+class Author(BaseModel):
+    id: str
+    name: str
+    coauthors: Set['Author'] = set()
