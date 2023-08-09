@@ -16,6 +16,8 @@ def index(request):
             'error': 'Failed to connect to Semantic Scholar API', 
             'exception': str(e)
         }, status=400)
+
+    return JsonResponse({'value': [Author(id='123', name='1,2,3').model_dump_json()]})
     
     try:
         src = getAuthorByName(client, "Thomas Bergamaschi")
@@ -36,5 +38,3 @@ def index(request):
             'error': 'Failed to find shortest paths.', 
             'exception': str(e)
         }, status=400)
-
-# Create your views here.
