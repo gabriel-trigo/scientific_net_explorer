@@ -16,12 +16,10 @@ def index(request):
             'error': 'Failed to connect to Semantic Scholar API', 
             'exception': str(e)
         }, status=400)
-
-    return JsonResponse({'value': [Author(id='123', name='1,2,3').model_dump_json()]})
     
     try:
         src = getAuthorByName(client, "Thomas Bergamaschi")
-        tgt = getAuthorByName(client, "Christos Papadimitriou")
+        tgt = getAuthorByName(client, "Tim Menke")
 
     except Exception as e:
         return JsonResponse({
@@ -31,7 +29,14 @@ def index(request):
     
     try:
         graph = bfs(client, src, tgt)
-        return JsonResponse({'size': len(graph.nodes)})
+        return JsonResponse({
+            'nodes': [graph.nodes[key]['authorObj'].model_dump_json() 
+                        for key in list(graph.nodes.keys())], 
+            'edges': [{
+                'source': graph.nodes[pair[0]]['authorObj'].model_dump_json(), 
+                'dest': graph.nodes[pair[1]]['authorObj'].model_dump_json()
+            } for pair in list(graph.edges.keys())]
+        })
 
     except Exception as e:
         return JsonResponse({

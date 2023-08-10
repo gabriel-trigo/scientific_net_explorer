@@ -54,11 +54,13 @@ def bfs(client, src, tgt):
     graph = nx.Graph()
     graph.add_node(
         src.id, 
-        dist=0
+        dist=0, 
+        authorObj=src
     )
     graph.add_node(
         tgt.id, 
-        dist=0
+        dist=0, 
+        authorObj=tgt
     )
 
     fwd_queue = deque([(src, 0)])
@@ -82,7 +84,8 @@ def bfs(client, src, tgt):
             if neighbor.id not in bwd_visited:
                 graph.add_node(
                     neighbor.id, 
-                    dist=dist_fwd + 1
+                    dist=dist_fwd + 1, 
+                    authorObj=neighbor
                 )
                 fwd_queue.append((neighbor, dist_fwd + 1))
             else:
@@ -104,7 +107,8 @@ def bfs(client, src, tgt):
             if neighbor.id not in fwd_visited:
                 graph.add_node(
                     neighbor.id, 
-                    dist=dist_bwd + 1
+                    dist=dist_bwd + 1, 
+                    authorObj=neighbor
                 )
                 bwd_queue.append((neighbor, dist_bwd + 1))
             else:
