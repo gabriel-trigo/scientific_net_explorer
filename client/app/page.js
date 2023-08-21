@@ -1,13 +1,18 @@
 "use client"
 import Image from 'next/image'
 import App from './App'
-import InputForm from './InputForm'
+import InputForm from './InputForm/InputForm'
 import Navbartw from './Navbartw'
 import React, { useState } from 'react';
+import LoadingComponent from './Loading/LoadingComponent'
+import Graph from './Graph/Graph'
 
 export default function Home() {
 
-  const [graph, setGraph] = useState(null);
+  const [nodes, setNodes] = useState([]);
+  const [edges, setEdges] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [numAuthors, setNumAuthors] = useState(null);
 
   return (
     <>
@@ -18,14 +23,25 @@ export default function Home() {
             Academic Network Explorer
           </h1>
           <p className="text-justify pb-4">
-            Hey there my old friend how are you doing in this fine evening testing just
-            how wide my container is wow it is very wide hot damnnnnn just checking if my 
-            text really is justified you know you never know bro let's just be sure dayumm
-            hey
+            Hi, this is a website made as a fun project to explore coauthorship graphs
+            between scientific authors. The information shown here is 
+            provided by the <a>Semantic Scholar API</a>, and you can check 
+            out the entire code here.
           </p>
           <InputForm
-            setGraph={setGraph}>  
+            setNodes={ setNodes }
+            setEdges={ setEdges }
+            setIsLoading={ setIsLoading }
+            setNumAuthors={ setNumAuthors }>  
           </InputForm>
+          <div>
+            { 
+              numAuthors == null ? <></> 
+              : 
+              <LoadingComponent numAuthors={ numAuthors } isLoading={ isLoading }/> 
+            }
+            <Graph nodes={ nodes } edges={ edges }/>
+          </div>
         </div>
       </main>
     </>
