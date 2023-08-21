@@ -1,5 +1,6 @@
 import sys
 import os
+import time
 # Fixing imports
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if parent_dir not in sys.path:
@@ -30,7 +31,10 @@ def getAuthorByName(client, name):
 
 def getCoauthorList(client, author):
 
+    startTime = time.time()
     authorApiObj = client.get_author(author.id) # Author API object.
+    endTime = time.time()
+    print("API call time: {}".format(endTime - startTime))
     coauthors = [] # Will hold all coauthors; initialize to empty.
 
     if "papers" not in authorApiObj.keys():
@@ -77,7 +81,14 @@ def bfs(client, src, tgt):
 
         # Forward BFS
         pop_fwd, dist_fwd = fwd_queue.popleft()
-        for neighbor in getCoauthorList(client, pop_fwd):
+        print(pop_fwd)
+
+        try:
+            coauthorList = getCoauthorList(client, pop_fwd)
+        except:
+            coauthorList = []
+
+        for neighbor in coauthorList:
             if neighbor.id in fwd_visited:
                 continue
             
@@ -99,8 +110,14 @@ def bfs(client, src, tgt):
 
         # Forward BFS
         pop_bwd, dist_bwd = bwd_queue.popleft()
-        print('popped bwd: {}'.format(pop_bwd.name))
-        for neighbor in getCoauthorList(client, pop_bwd):
+        print(pop_bwd)
+
+        try:
+            coauthorList = getCoauthorList(client, pop_bwd)
+        except:
+            coauthorList = []
+
+        for neighbor in coauthorList:
             if neighbor.id in bwd_visited:
                 continue
             
@@ -121,5 +138,9 @@ def bfs(client, src, tgt):
             bwd_visited.add(neighbor.id)
 
     print("Total number of nodes: {}".format(len(graph.nodes)))
-    return graph
+
+    shortest_paths = list(nx.all_shortest_paths(graph, source=src.id, target=tgt.id))
+    new_graph = graph.subgraph([node for path in shortest_paths for node in path])
+
+    return new_graph
 
