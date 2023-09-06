@@ -1,58 +1,52 @@
-import sys
 import os
-import time
-# Fixing imports
-parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if parent_dir not in sys.path:
-    sys.path.append(parent_dir)
+from typing import List
+from semanticscholar import AsyncSemanticScholar
+from erdos.pydantic_models import Author
 
-import networkx as nx
-from semanticscholar import SemanticScholar
-from models.sample_models import Author
-from collections import deque
+class Semantic_Scholar_Client:
+    """Class to make calls to the Semantic Scholar API."""
 
-def useSemanticScholar():
+    def __init__(self) -> AsyncSemanticScholar:
 
-    key = os.getenv('SEMANTIC_SCHOLAR_API_KEY')
-    return SemanticScholar(api_key=key)
+        self.client = AsyncSemanticScholar(
+            api_key=os.getenv('SEMANTIC_SCHOLAR_API_KEY')
+        )
 
-def getAuthorByName(client, name):
+    async def get_author_by_name(self, author_name: str) -> Author:
 
-    # Name query may return many results; sort by H-index.
-    author = sorted(
-        client.search_author(name), 
-        key=lambda x: -x["hIndex"]
-    )[0]
-    
-    return Author(
-        id=author["authorId"], 
-        name=author["name"]
-    )
+        author = sorted(
+            await self.client.search_author(author_name), 
+            key=lambda x: -x["hIndex"]
+        )
 
-def getCoauthorList(client, author):
+        return Author(
+            id=author["authorId"], 
+            name=author["name"]
+        )
 
-    startTime = time.time()
-    authorApiObj = client.get_author(author.id) # Author API object.
-    endTime = time.time()
-    print("API call time: {}".format(endTime - startTime))
-    coauthors = [] # Will hold all coauthors; initialize to empty.
+    async def get_coauthor_list(self, author: Author) -> List[Author]:
 
-    if "papers" not in authorApiObj.keys():
+        author_api_obj = await self.client.get_author(author.id)
+        coauthors = []
+
+        # Author doesn't have any papers.
+        if "papers" not in author_api_obj.keys():
+            return coauthors
+
+        # Iterate through all papers and find coauthors.
+        for paper in author_api_obj["papers"]:
+            for coauthor in paper["authors"]:
+                if coauthor["authorId"] is not None and \
+                    int(coauthor["authorId"]) != author.id:
+                    coauthors.append(
+                        Author(
+                            id=coauthor["authorId"], 
+                            name=coauthor["name"]
+                        ))
+        
         return coauthors
-    
-    # Iterate through papers and add coauthors.
-    for paper in authorApiObj["papers"]:
-        for coauthor in paper["authors"]:
-            if coauthor["authorId"] != None and \
-                int(coauthor["authorId"]) != author.id:
-                coauthors.append(
-                    Author(
-                    id=coauthor["authorId"], 
-                    name=coauthor["name"]
-                ))
 
-    return coauthors
-
+'''
 def bfs(client, src, tgt):
 
     graph = nx.Graph()
@@ -143,4 +137,5 @@ def bfs(client, src, tgt):
     new_graph = graph.subgraph([node for path in shortest_paths for node in path])
 
     return new_graph
+''''''
 

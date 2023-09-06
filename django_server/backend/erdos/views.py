@@ -1,11 +1,46 @@
-import networkx as nx
 import json
 from collections import deque
+import networkx as nx
 from django.http import StreamingHttpResponse
-from django.shortcuts import render
 from django.http import JsonResponse
-from models.sample_models import Author
-from util.semantic_scholar_client import useSemanticScholar, getAuthorByName, getCoauthorList
+from erdos.util.Graph import Graph
+from erdos.util.Semantic_Scholar_Client import Semantic_Scholar_Client
+
+def index(request):
+
+    if request.method != 'GET':
+        return JsonResponse(
+            {'error': 'method not allowed'},
+            status=405
+        )
+    
+    try:
+        client = Semantic_Scholar_Client()
+        src = client.get_author_by_name(request.GET['src'])
+        tgt = client.get_author_by_name(request.GET['tgt'])
+
+    except Exception as error:
+        return JsonResponse({
+            'error': 'Failed to find source or target authors.', 
+            'exception': str(error)
+            }, 
+            status=200
+        )
+    
+    try:
+        graph = Graph(src=src, tgt=tgt)
+        graph.bfs()
+    except Exception as error:
+        return JsonResponse({
+            'error': 'Failed to find paths connecting the authors.', 
+            'exception': str(error)
+            }, 
+            status=200
+        )
+
+    return StreamingHttpResponse(
+        graph.simplified_graph(),
+        content_type='application/json')
 
 def bfs(client, src, tgt):
 
@@ -111,30 +146,3 @@ def bfs(client, src, tgt):
     })
 
     return new_graph
-
-def index(request):
-
-    if request.method != 'GET':
-        return JsonResponse({'error': 'method not allowed'}, status=400)
-    
-    try: 
-        client = useSemanticScholar()
-    except Exception as e:
-        return JsonResponse({
-            'error': 'Failed to connect to Semantic Scholar API', 
-            'exception': str(e)
-        }, status=200)
-    
-    try:
-        src = getAuthorByName(client, request.GET['src'])
-        tgt = getAuthorByName(client, request.GET['tgt'])
-
-    except Exception as e:
-        return JsonResponse({
-            'error': 'Failed to find source or target authors.', 
-            'exception': str(e)
-        }, status=200)
-    
-    return StreamingHttpResponse(
-        bfs(client, src, tgt), 
-        content_type='application/json')
