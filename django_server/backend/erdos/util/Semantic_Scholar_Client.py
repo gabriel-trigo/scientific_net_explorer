@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import Set
 from semanticscholar import AsyncSemanticScholar
 from erdos.pydantic_models import Author
 
@@ -9,22 +9,24 @@ class Semantic_Scholar_Client:
     def __init__(self) -> AsyncSemanticScholar:
 
         self.client = AsyncSemanticScholar(
-            api_key=os.getenv('SEMANTIC_SCHOLAR_API_KEY')
+            api_key=os.getenv('SEMANTIC_SCHOLAR_API_KEY'), 
+            timeout=100
         )
 
     async def get_author_by_name(self, author_name: str) -> Author:
 
         author = sorted(
-            await self.client.search_author(author_name), 
+            await self.client.search_author(author_name),
             key=lambda x: -x["hIndex"]
-        )
+        )[0]
 
         return Author(
-            id=author["authorId"], 
-            name=author["name"]
+            id=author["authorId"],
+            name=author["name"],
+            dist=0
         )
 
-    async def get_coauthor_list(self, author: Author) -> List[Author]:
+    async def get_coauthor_list(self, author: Author) -> Set[Author]:
 
         author_api_obj = await self.client.get_author(author.id)
         coauthors = []
@@ -44,7 +46,7 @@ class Semantic_Scholar_Client:
                             name=coauthor["name"]
                         ))
         
-        return coauthors
+        return set(coauthors)
 
 '''
 def bfs(client, src, tgt):
@@ -137,5 +139,4 @@ def bfs(client, src, tgt):
     new_graph = graph.subgraph([node for path in shortest_paths for node in path])
 
     return new_graph
-''''''
-
+'''

@@ -7,4 +7,4 @@ class Author(BaseModel):
     id: str
     name: str
     coauthors: Set['Author'] = set()
-    dist: Optional[int]
+    dist: Optional[int] = 0

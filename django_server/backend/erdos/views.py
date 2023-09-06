@@ -1,24 +1,28 @@
 import json
 from collections import deque
 import networkx as nx
+import logging
 from django.http import StreamingHttpResponse
 from django.http import JsonResponse
 from erdos.util.Graph import Graph
 from erdos.util.Semantic_Scholar_Client import Semantic_Scholar_Client
 
-def index(request):
+async def index(request):
 
     if request.method != 'GET':
         return JsonResponse(
             {'error': 'method not allowed'},
             status=405
         )
-    
-    try:
-        client = Semantic_Scholar_Client()
-        src = client.get_author_by_name(request.GET['src'])
-        tgt = client.get_author_by_name(request.GET['tgt'])
 
+    client = Semantic_Scholar_Client()
+    src = await client.get_author_by_name(request.GET['src'])
+    tgt = await client.get_author_by_name(request.GET['tgt'])
+
+    print("hoe")
+    logging.warning("Obtained src and tgt nodes.")
+
+    '''
     except Exception as error:
         return JsonResponse({
             'error': 'Failed to find source or target authors.', 
@@ -26,20 +30,23 @@ def index(request):
             }, 
             status=200
         )
+    '''
     
-    try:
-        graph = Graph(src=src, tgt=tgt)
-        graph.bfs()
+    graph = Graph(src=src, tgt=tgt)
+    await graph.bfs()
+    '''
     except Exception as error:
+        print(error)
         return JsonResponse({
             'error': 'Failed to find paths connecting the authors.', 
             'exception': str(error)
-            }, 
+            },
             status=200
         )
+    '''
 
     return StreamingHttpResponse(
-        graph.simplified_graph(),
+        graph.get_json(),
         content_type='application/json')
 
 def bfs(client, src, tgt):
