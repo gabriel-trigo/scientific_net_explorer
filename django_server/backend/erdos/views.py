@@ -33,7 +33,6 @@ async def index(request):
     '''
     
     graph = Graph(src=src, tgt=tgt)
-    await graph.bfs()
     '''
     except Exception as error:
         print(error)
@@ -46,7 +45,7 @@ async def index(request):
     '''
 
     return StreamingHttpResponse(
-        graph.get_json(),
+        graph.bfs(),
         content_type='application/json')
 
 def bfs(client, src, tgt):
@@ -136,8 +135,6 @@ def bfs(client, src, tgt):
         yield "@" + json.dumps({
             "num_nodes": len(graph.nodes)
         }) # @ character used to separate each chunk
-
-    print("Total number of nodes: {}".format(len(graph.nodes)))
 
     shortest_paths = list(nx.all_shortest_paths(graph, source=src.id, target=tgt.id))
     new_graph = graph.subgraph([node for path in shortest_paths for node in path])

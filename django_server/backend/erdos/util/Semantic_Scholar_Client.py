@@ -29,7 +29,7 @@ class Semantic_Scholar_Client:
     async def get_coauthor_list(self, author: Author) -> Set[Author]:
 
         author_api_obj = await self.client.get_author(author.id)
-        coauthors = []
+        coauthors = set()
 
         # Author doesn't have any papers.
         if "papers" not in author_api_obj.keys():
@@ -40,13 +40,13 @@ class Semantic_Scholar_Client:
             for coauthor in paper["authors"]:
                 if coauthor["authorId"] is not None and \
                     int(coauthor["authorId"]) != author.id:
-                    coauthors.append(
+                    coauthors.add(
                         Author(
-                            id=coauthor["authorId"], 
+                            id=coauthor["authorId"],
                             name=coauthor["name"]
                         ))
-        
-        return set(coauthors)
+
+        return coauthors
 
 '''
 def bfs(client, src, tgt):

@@ -1,16 +1,23 @@
 import json
 import time
+import random
 from collections import deque
 import asyncio
-import networkx as nx
 import logging
+import networkx as nx
 from erdos.pydantic_models import Author
 from erdos.util.Semantic_Scholar_Client import Semantic_Scholar_Client
 
 class Graph:
     """Class to represent the coauthorship graph."""
 
-    def __init__(self, src: Author, tgt: Author):
+    def __init__(
+            self,
+            src: Author,
+            tgt: Author,
+            timeout: float=0.02, 
+            max_neighbors: int=10
+        ):
 
         self.src = src
         self.tgt = tgt
@@ -32,6 +39,9 @@ class Graph:
         self.min_dist = 100 # min distance path found. Initiate as big number.
 
         self.client = Semantic_Scholar_Client()
+
+        self.timeout = timeout
+        self.max_neighbors = max_neighbors
 
     def add_node(self, author: Author) -> None:
 
@@ -61,22 +71,37 @@ class Graph:
             promise = self.client.get_coauthor_list(author=author)
             promises.append(promise)
             logging.warning("Made API call to get {} neighbors.".format(author.name))
-            time.sleep(0.02)
+            time.sleep(self.timeout) # Avoid going over limit of API calls.
 
         resolved_promises = await asyncio.gather(*promises, return_exceptions=True)
 
         for i in range(len(frontier)):
             author = frontier.popleft()
-            for coauthor in resolved_promises[i]:
+
+            # Failed author API call, just skip it.
+            try:
+                assert isinstance(resolved_promises[i], set)
+            except AssertionError as error:
+                logging.warning(
+                    "API call to author '{}' failed, skipping. \n {}"\
+                        .format(author.name, error)
+                )
+                continue
+
+            for coauthor in random.sample(
+                list(resolved_promises[i]), 
+                min(len(resolved_promises[i]), self.max_neighbors)
+            ):
                 if coauthor.id in visited: continue
 
                 if coauthor.id not in visited_opposite:
+                    visited.add(coauthor.id)
                     coauthor.dist = author.dist + 1
                     self.add_node(coauthor)
                     frontier.append(coauthor)
                 else:
                     self.min_dist = min(
-                        self.min_dist, 
+                        self.min_dist,
                         author.dist + 1 + coauthor.dist
                     )
 
@@ -91,6 +116,9 @@ class Graph:
             await self.expand(src_or_tgt="tgt")
             depth += 2
             logging.warning(depth)
+            yield "@" + json.dumps({
+            "num_nodes": len(self.graph.nodes)
+        }) # @ character used to separate each chunk
 
         shortest_paths = list(nx.all_shortest_paths(
             self.graph,
@@ -103,9 +131,11 @@ class Graph:
 
         self.simplified_graph = new_graph
 
+        yield self.get_json()
+
     def get_json(self):
 
-        yield "@" + json.dumps({
+        return "@" + json.dumps({
             "num_nodes": len(self.graph.nodes), 
             "nodes": [self.simplified_graph.nodes[key]['author_obj'].model_dump_json() 
                         for key in list(self.simplified_graph.nodes.keys())],
