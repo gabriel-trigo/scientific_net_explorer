@@ -1,11 +1,12 @@
 django
 django-cors-headers
 pydantic
-semanticscholar
-python-dotenv
 typing
 python-dotenv
 networkx
 httpx
 asyncio
 logging
+environ
+uvicorn
+git+https://github.com/gabriel-trigo/semanticscholar.git

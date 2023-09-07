@@ -13,6 +13,7 @@ export default function Home() {
   const [edges, setEdges] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [numAuthors, setNumAuthors] = useState(null);
+  const [numPapers, setNumPapers] = useState(null);
 
   return (
     <>
@@ -32,13 +33,14 @@ export default function Home() {
             setNodes={ setNodes }
             setEdges={ setEdges }
             setIsLoading={ setIsLoading }
-            setNumAuthors={ setNumAuthors }>  
+            setNumAuthors={ setNumAuthors }
+            setNumPapers={ setNumPapers }>  
           </InputForm>
           <div>
             { 
               numAuthors == null ? <></> 
               : 
-              <LoadingComponent numAuthors={ numAuthors } isLoading={ isLoading }/> 
+              <LoadingComponent numAuthors={ numAuthors } isLoading={ isLoading } numPapers={ numPapers }/> 
             }
             <Graph nodes={ nodes } edges={ edges }/>
           </div>

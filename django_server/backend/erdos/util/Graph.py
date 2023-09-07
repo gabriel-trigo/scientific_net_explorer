@@ -15,7 +15,7 @@ class Graph:
             self,
             src: Author,
             tgt: Author,
-            timeout: float=0.02, 
+            timeout: float=0.02,
             max_neighbors: int=10
         ):
 
@@ -42,6 +42,8 @@ class Graph:
 
         self.timeout = timeout
         self.max_neighbors = max_neighbors
+
+        self.num_papers = 0
 
     def add_node(self, author: Author) -> None:
 
@@ -80,17 +82,20 @@ class Graph:
 
             # Failed author API call, just skip it.
             try:
-                assert isinstance(resolved_promises[i], set)
+                assert isinstance(resolved_promises[i][0], set)
             except AssertionError as error:
                 logging.warning(
                     "API call to author '{}' failed, skipping. \n {}"\
                         .format(author.name, error)
                 )
                 continue
+            
+            # Add to number of papers scanned.
+            self.num_papers += resolved_promises[i][1]
 
             for coauthor in random.sample(
-                list(resolved_promises[i]), 
-                min(len(resolved_promises[i]), self.max_neighbors)
+                list(resolved_promises[i][0]), 
+                min(len(resolved_promises[i][0]), self.max_neighbors)
             ):
                 if coauthor.id in visited: continue
 
@@ -117,8 +122,9 @@ class Graph:
             depth += 2
             logging.warning(depth)
             yield "@" + json.dumps({
-            "num_nodes": len(self.graph.nodes)
-        }) # @ character used to separate each chunk
+                "num_nodes": len(self.graph.nodes), 
+                "num_papers": self.num_papers
+            }) # @ character used to separate each chunk
 
         shortest_paths = list(nx.all_shortest_paths(
             self.graph,

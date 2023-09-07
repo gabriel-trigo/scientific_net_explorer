@@ -8,7 +8,8 @@ function InputForm({
     setNodes,
     setEdges,  
     setIsLoading, 
-    setNumAuthors
+    setNumAuthors, 
+    setNumPapers
 }) {
 
     // Form references.
@@ -24,7 +25,13 @@ function InputForm({
         const url = new URL('http://127.0.0.1:8000/erdos/');
         url.searchParams.append('src', srcInput.current.value);
         url.searchParams.append('tgt', tgtInput.current.value);
-        const response = await fetch(url, { method: 'GET' });
+
+        try {
+            var response = await fetch(url, { method: 'GET' });
+        } catch(error) {
+            cleanup(error);
+            return;
+        }
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
@@ -33,16 +40,21 @@ function InputForm({
 
         while (true) {
 
-            const {value, done} = await reader.read(); // Read next chunk
-            if (done) { break; }
+            try {
+                var { value, done } = await reader.read(); // Read next chunk
+                if (done) { break; }
+            } catch(error) {
+                cleanup(error);
+            }
 
             text += decoder.decode(value);
             let dictArray = text.split("@");
+            console.log(dictArray);
             try { 
                 loadingData = JSON.parse(dictArray[dictArray.length - 1]);
                 setNumAuthors(loadingData["num_nodes"]);
-            } 
-            catch(error) { continue; } // In case chunk is not full dict.
+                setNumPapers(loadingData["num_papers"]);
+            } catch(error) { continue; } // In case chunk is not full dict.
         }
         setNodes(loadingData["nodes"].map((e) => JSON.parse(e)));
         setEdges(loadingData["edges"].map((e) => {
@@ -51,6 +63,11 @@ function InputForm({
                 "target": JSON.parse(e["target"])
             }}));
         setIsLoading(false); // Done loading.
+    }
+
+    function cleanup(error) {
+        setIsLoading(false);
+        setNumAuthors(null);
     }
 
     return (

@@ -8,8 +8,6 @@ export default function Graph({graph}) {
   var height = 800
   var width = 1000
 
-
-
   const color = d3.scaleOrdinal(d3.schemeCategory10)
 
   React.useEffect(() => {
