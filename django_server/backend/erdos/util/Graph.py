@@ -89,6 +89,12 @@ class Graph:
                         .format(author.name, error)
                 )
                 continue
+            except TypeError as error:
+                logging.warning(
+                    "API call to author '{}' failed, skipping. \n {}"\
+                        .format(author.name, error)
+                )
+                continue
             
             # Add to number of papers scanned.
             self.num_papers += resolved_promises[i][1]
@@ -97,7 +103,8 @@ class Graph:
                 list(resolved_promises[i][0]), 
                 min(len(resolved_promises[i][0]), self.max_neighbors)
             ):
-                if coauthor.id in visited: continue
+                if coauthor.id in visited:
+                    continue
 
                 if coauthor.id not in visited_opposite:
                     visited.add(coauthor.id)
@@ -143,6 +150,7 @@ class Graph:
 
         return "@" + json.dumps({
             "num_nodes": len(self.graph.nodes), 
+            "num_papers": self.num_papers,
             "nodes": [self.simplified_graph.nodes[key]['author_obj'].model_dump_json() 
                         for key in list(self.simplified_graph.nodes.keys())],
             "edges": [{

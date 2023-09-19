@@ -1,6 +1,3 @@
-import logging
-import time
-import asyncio
 from django.http import StreamingHttpResponse
 from django.http import JsonResponse
 from erdos.util.Graph import Graph
@@ -15,10 +12,20 @@ async def index(request):
         )
 
     client = Semantic_Scholar_Client()
-    src = await client.get_author_by_name(request.GET['src'])
-    tgt = await client.get_author_by_name(request.GET['tgt'])
-
-    logging.warning("Obtained src and tgt nodes.")
+    try:
+        src = await client.get_author_by_name(request.GET['src'])
+        tgt = await client.get_author_by_name(request.GET['tgt'])
+    except IndexError:
+        print("hey")
+        return JsonResponse(
+            { "error": "Could not find source/target authors." },
+            status=404
+        )
+    except Exception:
+        return JsonResponse(
+            { "error": "Unexpected error when searching source/target authors" },
+            status=500
+        )
 
     graph = Graph(src=src, tgt=tgt)
 

@@ -1,11 +1,10 @@
 "use client"
-import Image from 'next/image'
-import App from './App'
 import InputForm from './InputForm/InputForm'
 import Navbartw from './Navbartw'
 import React, { useState } from 'react';
 import LoadingComponent from './Loading/LoadingComponent'
 import Graph from './Graph/Graph'
+import { SnackbarProvider } from 'notistack'
 
 export default function Home() {
 
@@ -33,6 +32,7 @@ export default function Home() {
             setNodes={ setNodes }
             setEdges={ setEdges }
             setIsLoading={ setIsLoading }
+            isLoading={ isLoading }
             setNumAuthors={ setNumAuthors }
             setNumPapers={ setNumPapers }>  
           </InputForm>
@@ -45,6 +45,7 @@ export default function Home() {
             <Graph nodes={ nodes } edges={ edges }/>
           </div>
         </div>
+        <SnackbarProvider/>
       </main>
     </>
   )

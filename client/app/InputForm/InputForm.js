@@ -1,13 +1,13 @@
 'use client'
-import React, { useState, useRef } from 'react';
+import React, { useRef } from 'react';
 import Field from './Field'
-import LoadingComponent from '../Loading/LoadingComponent'
-import Graph from '../Graph/Graph'
+import { SnackbarProvider, enqueueSnackbar } from 'notistack'
 
 function InputForm({
     setNodes,
     setEdges,  
     setIsLoading, 
+    isLoading, 
     setNumAuthors, 
     setNumPapers
 }) {
@@ -18,21 +18,39 @@ function InputForm({
 
     async function handleSubmit() {
 
+        if (isLoading) {
+            enqueueSnackbar(
+                "Please wait for the current search to conclude.", 
+                { variant: "warning" }
+            );
+            return;
+        }
+
         setIsLoading(true); // Start loading.
         setNumAuthors(0);
+        setNumPapers(0);
 
         // Make request to backend.
         const url = new URL('http://127.0.0.1:8000/erdos/');
         url.searchParams.append('src', srcInput.current.value);
         url.searchParams.append('tgt', tgtInput.current.value);
+        var response = await fetch(url, { method: 'GET' });
 
-        try {
-            var response = await fetch(url, { method: 'GET' });
-        } catch(error) {
-            cleanup(error);
-            return;
+        // Backend couldn't find authors.
+        if (response.status != 200) {
+            enqueueSnackbar(
+                "Couldn't find source/target authors.",
+                { variant: "error" });
+            cleanup();
+            return
+        } else {
+            enqueueSnackbar(
+                "Source/target authors found, initiation search.",
+                { variant: "success" }
+            )
         }
-
+        
+        // Read StreamingResponse.
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let text = "";
@@ -49,7 +67,6 @@ function InputForm({
 
             text += decoder.decode(value);
             let dictArray = text.split("@");
-            console.log(dictArray);
             try { 
                 loadingData = JSON.parse(dictArray[dictArray.length - 1]);
                 setNumAuthors(loadingData["num_nodes"]);
@@ -65,7 +82,7 @@ function InputForm({
         setIsLoading(false); // Done loading.
     }
 
-    function cleanup(error) {
+    function cleanup() {
         setIsLoading(false);
         setNumAuthors(null);
     }
