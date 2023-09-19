@@ -15,12 +15,15 @@ async def index(request):
     try:
         src = await client.get_author_by_name(request.GET['src'])
         tgt = await client.get_author_by_name(request.GET['tgt'])
+
+    # No author with given name found.
     except IndexError:
-        print("hey")
         return JsonResponse(
             { "error": "Could not find source/target authors." },
             status=404
         )
+
+    # Other exceptions.
     except Exception:
         return JsonResponse(
             { "error": "Unexpected error when searching source/target authors" },

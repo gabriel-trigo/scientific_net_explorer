@@ -10,11 +10,11 @@ environ.Env.read_env()
 class Semantic_Scholar_Client:
     """Class to make calls to the Semantic Scholar API."""
 
-    def __init__(self) -> AsyncSemanticScholar:
+    def __init__(self, timeout: int=100) -> AsyncSemanticScholar:
         
         self.client = AsyncSemanticScholar(
             api_key=env("SEMANTIC_SCHOLAR_API_KEY"),
-            timeout=100
+            timeout=timeout
         )
 
     async def get_author_by_name(self, author_name: str) -> Author:
@@ -51,6 +51,6 @@ class Semantic_Scholar_Client:
                         ))
 
         return coauthors, len(author_api_obj["papers"])
-    
+
     async def get_author_by_id(self, id: str) -> Author:
         pass
